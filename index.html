@@ -12,8 +12,8 @@
       flex-direction: column;
       align-items: center;
       font-family: Arial, sans-serif;
-      background: #000;
-      color: #fff;
+      background: #fff; /* <-- White background now */
+      color: #000;
     }
 
     h1 {
@@ -28,12 +28,23 @@
       border: 2px solid #ccc;
       border-radius: 8px;
       overflow: hidden;
+      background: #fff; /* White container background */
     }
 
     model-viewer {
       width: 100%;
       height: 100%;
-      background: transparent;
+      background-color: #fff; /* White background inside model-viewer */
+    }
+
+    canvas#overlayCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 512px;
+      height: 512px;
+      z-index: 2;
+      pointer-events: none;
     }
 
     #buttons {
@@ -57,11 +68,11 @@
   <p>Use your mobile device for full AR experience.</p>
 
   <div id="viewer-container">
-    <!-- 3D Lung Model with AR support -->
+    <!-- 3D Chest Model with AR support -->
     <model-viewer 
-      id="lungModel"
-      src="assets/models/chest.glb"
-      alt="3D Lung Model"
+      id="chestModel"
+      src="assets/models/chest.glb"  <!-- Make sure the path is correct -->
+      alt="3D Chest Model"
       ar
       ar-modes="webxr scene-viewer quick-look"
       camera-controls
@@ -70,12 +81,10 @@
       exposure="1"
       shadow-intensity="1"
       style="width: 100%; height: 100%;">
-      
-      <!-- Transparent PNG overlay in 3D space -->
-      <button slot="ar-button" style="display:none;"></button>
-      <img id="overlay3D" src="" style="display:none;" slot="poster">
-      
     </model-viewer>
+
+    <!-- Transparent PNG overlay -->
+    <canvas id="overlayCanvas" width="512" height="512"></canvas>
   </div>
 
   <!-- Upload overlay PNG -->
@@ -88,51 +97,32 @@
   </div>
 
   <script>
-    const modelViewer = document.getElementById('lungModel');
+    // Overlay PNG functionality
+    const overlayCanvas = document.getElementById('overlayCanvas');
+    const ctx = overlayCanvas.getContext('2d');
     const uploadInput = document.getElementById('uploadOverlay');
-
-    let overlayData = null;
+    let overlayImage = null;
 
     uploadInput.addEventListener('change', (event) => {
       const file = event.target.files[0];
       if (!file) return;
-      const url = URL.createObjectURL(file);
-      overlayData = url;
-
-      // Show overlay in AR mode by updating poster
-      const overlayImg = document.createElement('img');
-      overlayImg.src = url;
-      overlayImg.style.position = 'absolute';
-      overlayImg.style.width = '512px';
-      overlayImg.style.height = '512px';
-      overlayImg.style.top = '0';
-      overlayImg.style.left = '0';
-      overlayImg.style.pointerEvents = 'none';
-      overlayImg.id = 'overlayImg';
-
-      document.getElementById('viewer-container').appendChild(overlayImg);
+      const img = new Image();
+      img.onload = () => {
+        ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+        ctx.drawImage(img, 0, 0, 512, 512);
+        overlayImage = img;
+      };
+      img.src = URL.createObjectURL(file);
     });
 
     document.getElementById('removeOverlay').addEventListener('click', () => {
-      const existing = document.getElementById('overlayImg');
-      if (existing) existing.remove();
+      ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
     });
 
     document.getElementById('restoreOverlay').addEventListener('click', () => {
-      if (overlayData) {
-        const existing = document.getElementById('overlayImg');
-        if (!existing) {
-          const overlayImg = document.createElement('img');
-          overlayImg.src = overlayData;
-          overlayImg.style.position = 'absolute';
-          overlayImg.style.width = '512px';
-          overlayImg.style.height = '512px';
-          overlayImg.style.top = '0';
-          overlayImg.style.left = '0';
-          overlayImg.style.pointerEvents = 'none';
-          overlayImg.id = 'overlayImg';
-          document.getElementById('viewer-container').appendChild(overlayImg);
-        }
+      if (overlayImage) {
+        ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+        ctx.drawImage(overlayImage, 0, 0, 512, 512);
       }
     });
   </script>
