@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <title>RafiRunLung AR Web App</title>
   <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
-  <link rel="stylesheet" href="style.css">
   <style>
+    /* --- Body & Font --- */
     body {
       margin: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
       font-family: Arial, sans-serif;
-      background: #fff; /* <-- White background now */
+      background: #fff; /* White background */
       color: #000;
     }
 
@@ -21,75 +21,96 @@
       margin: 10px 0;
     }
 
+    p {
+      text-align: center;
+      margin: 5px 0 15px 0;
+      font-size: 14px;
+    }
+
+    /* --- Viewer Container --- */
     #viewer-container {
       position: relative;
       width: 512px;
       height: 512px;
-      border: 2px solid #ccc;
-      border-radius: 8px;
+      border-radius: 50%; /* round shape */
       overflow: hidden;
-      background: #fff; /* White container background */
+      border: 2px solid #ccc;
+      background: #fff;
     }
 
+    /* --- 3D Model --- */
     model-viewer {
       width: 100%;
       height: 100%;
-      background-color: #fff; /* White background inside model-viewer */
+      background: transparent;
     }
 
+    /* --- Overlay Canvas --- */
     canvas#overlayCanvas {
       position: absolute;
       top: 0;
       left: 0;
-      width: 512px;
-      height: 512px;
+      width: 100%;
+      height: 100%;
       z-index: 2;
-      pointer-events: none;
+      pointer-events: none; /* allow model interaction below */
     }
 
+    /* --- Buttons & Input --- */
     #buttons {
-      margin-top: 10px;
+      margin-top: 15px;
     }
 
     button {
       margin: 0 5px;
-      padding: 5px 10px;
+      padding: 5px 12px;
       cursor: pointer;
+      border-radius: 4px;
+      border: 1px solid #888;
+      background-color: #f0f0f0;
+    }
+
+    button:hover {
+      background-color: #ddd;
     }
 
     input[type="file"] {
       margin-top: 10px;
     }
+
   </style>
 </head>
 <body>
 
   <h1>RafiRunLung AR Web App</h1>
-  <p>Use your mobile device for full AR experience.</p>
+  <p>Use your mobile device for full AR experience</p>
 
   <div id="viewer-container">
-    <!-- 3D Chest Model with AR support -->
-    <model-viewer 
-      id="chestModel"
-      src="assets/models/chest.glb"  <!-- Make sure the path is correct -->
-      alt="3D Chest Model"
-      ar
-      ar-modes="webxr scene-viewer quick-look"
-      camera-controls
-      auto-rotate
-      environment-image="neutral"
-      exposure="1"
-      shadow-intensity="1"
-      style="width: 100%; height: 100%;">
+    <!-- 3D Chest Model with AR -->
+    <model-viewer
+        id="chestModel"
+        src="assets/models/chest.glb" <!-- make sure path is correct -->
+        alt="3D Chest Model"
+        ar
+        ar-modes="webxr scene-viewer quick-look"
+        camera-controls
+        auto-rotate
+        environment-image="neutral"
+        exposure="1"
+        shadow-intensity="1"
+        camera-orbit="0deg 75deg 2.5m"
+        min-camera-orbit="auto auto 1m"
+        max-camera-orbit="auto auto 5m">
     </model-viewer>
 
-    <!-- Transparent PNG overlay -->
+    <!-- Transparent Overlay Canvas -->
     <canvas id="overlayCanvas" width="512" height="512"></canvas>
   </div>
 
-  <!-- Upload overlay PNG -->
+  <!-- Upload Overlay PNG -->
   <input type="file" id="uploadOverlay" accept="image/png">
 
+  <!-- Buttons -->
   <div id="buttons">
     <button id="removeOverlay">Remove Overlay</button>
     <button id="restoreOverlay">Restore Overlay</button>
@@ -97,32 +118,35 @@
   </div>
 
   <script>
-    // Overlay PNG functionality
+    // --- Overlay PNG Functionality ---
     const overlayCanvas = document.getElementById('overlayCanvas');
     const ctx = overlayCanvas.getContext('2d');
     const uploadInput = document.getElementById('uploadOverlay');
     let overlayImage = null;
 
+    // Upload PNG
     uploadInput.addEventListener('change', (event) => {
       const file = event.target.files[0];
       if (!file) return;
       const img = new Image();
       img.onload = () => {
         ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-        ctx.drawImage(img, 0, 0, 512, 512);
+        ctx.drawImage(img, 0, 0, overlayCanvas.width, overlayCanvas.height);
         overlayImage = img;
       };
       img.src = URL.createObjectURL(file);
     });
 
+    // Remove Overlay
     document.getElementById('removeOverlay').addEventListener('click', () => {
       ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
     });
 
+    // Restore Overlay
     document.getElementById('restoreOverlay').addEventListener('click', () => {
       if (overlayImage) {
         ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-        ctx.drawImage(overlayImage, 0, 0, 512, 512);
+        ctx.drawImage(overlayImage, 0, 0, overlayCanvas.width, overlayCanvas.height);
       }
     });
   </script>
