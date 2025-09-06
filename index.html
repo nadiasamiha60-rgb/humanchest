@@ -3,10 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>RafiRunLung AR Web App</title>
-
-  <!-- Model Viewer -->
   <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
-
+  <link rel="stylesheet" href="style.css">
   <style>
     body {
       margin: 0;
@@ -14,13 +12,13 @@
       flex-direction: column;
       align-items: center;
       font-family: Arial, sans-serif;
-      background: #fff;
+      background: #fff; /* white background */
       color: #000;
     }
 
     h1 {
-      margin: 10px 0;
       text-align: center;
+      margin: 10px 0;
     }
 
     #viewer-container {
@@ -28,9 +26,9 @@
       width: 512px;
       height: 512px;
       border: 2px solid #ccc;
-      border-radius: 10px;
+      border-radius: 8px;
       overflow: hidden;
-      margin-top: 10px;
+      background: #fff;
     }
 
     model-viewer {
@@ -39,7 +37,7 @@
       background: transparent;
     }
 
-    #overlayCanvas {
+    canvas#overlayCanvas {
       position: absolute;
       top: 0;
       left: 0;
@@ -55,54 +53,35 @@
 
     button {
       margin: 0 5px;
-      padding: 6px 12px;
+      padding: 5px 10px;
       cursor: pointer;
-      border-radius: 5px;
-      border: none;
-      background: #007bff;
-      color: white;
-      font-weight: bold;
-    }
-
-    button:hover {
-      background: #0056b3;
     }
 
     input[type="file"] {
       margin-top: 10px;
     }
-
-    /* Make AR button always visible on mobile */
-    model-viewer::part(ar-button) {
-      bottom: 15px !important;
-      right: 15px !important;
-      background-color: #28a745 !important;
-      color: white !important;
-      font-weight: bold;
-      border-radius: 8px;
-      padding: 6px 12px;
-    }
   </style>
 </head>
-
 <body>
+
   <h1>RafiRunLung AR Web App</h1>
-  <p>Use your mobile device for full AR experience</p>
+  <p>Use your mobile device to view AR.</p>
 
   <div id="viewer-container">
-    <!-- 3D Chest Model with AR -->
+    <!-- 3D Chest Model with AR support -->
     <model-viewer
       id="chestModel"
-      src="assets/models/chest.glb"
+      src="assets/models/chest_draco.glb"
       alt="3D Chest Model"
       ar
-      ar-modes="webxr scene-viewer quick-look"
+      ar-modes="scene-viewer webxr quick-look"
       camera-controls
       auto-rotate
       environment-image="neutral"
       exposure="1"
       shadow-intensity="1"
       style="width: 100%; height: 100%;">
+      <button slot="ar-button">View in AR</button>
     </model-viewer>
 
     <!-- Transparent PNG overlay -->
@@ -119,16 +98,15 @@
   </div>
 
   <script>
-    // Overlay PNG functionality
     const overlayCanvas = document.getElementById('overlayCanvas');
     const ctx = overlayCanvas.getContext('2d');
     const uploadInput = document.getElementById('uploadOverlay');
     let overlayImage = null;
 
+    // Upload PNG overlay
     uploadInput.addEventListener('change', (event) => {
       const file = event.target.files[0];
       if (!file) return;
-
       const img = new Image();
       img.onload = () => {
         ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
@@ -138,10 +116,12 @@
       img.src = URL.createObjectURL(file);
     });
 
+    // Remove overlay
     document.getElementById('removeOverlay').addEventListener('click', () => {
       ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
     });
 
+    // Restore overlay
     document.getElementById('restoreOverlay').addEventListener('click', () => {
       if (overlayImage) {
         ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
@@ -149,16 +129,31 @@
       }
     });
 
-    // Force AR preview on mobile
+    // Disable overlay drawing in AR mode to prevent crashes
     const modelViewer = document.getElementById('chestModel');
-    if (navigator.userAgent.match(/Android|iPhone|iPad|iPod/i)) {
-      modelViewer.addEventListener('click', () => {
-        if (modelViewer.canActivateAR) {
-          modelViewer.activateAR();
-        }
-      });
-    }
+    modelViewer.addEventListener('ar-status', (event) => {
+      if(event.detail.status === 'session-started') {
+        overlayCanvas.style.display = 'none'; // hide overlay in AR
+      } else {
+        overlayCanvas.style.display = 'block'; // show overlay again
+      }
+    });
+
+    // Optional: Adjust AR button styling
+    const arButton = modelViewer.querySelector('button[slot="ar-button"]');
+    arButton.style.position = 'absolute';
+    arButton.style.bottom = '10px';
+    arButton.style.left = '50%';
+    arButton.style.transform = 'translateX(-50%)';
+    arButton.style.padding = '8px 15px';
+    arButton.style.fontSize = '14px';
+    arButton.style.background = '#0a84ff';
+    arButton.style.color = '#fff';
+    arButton.style.border = 'none';
+    arButton.style.borderRadius = '5px';
+    arButton.style.cursor = 'pointer';
   </script>
+
 </body>
 </html>
 
