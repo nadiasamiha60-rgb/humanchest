@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>RafiRunLung 3D Viewer</title>
+  <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Chest 3D Viewer with Transparent Overlay</h1>
+
+  <div id="viewer-container">
+    <!-- 3D Chest GLB Model -->
+    <model-viewer id="chestModel"
+                  src="assets/models/chest.glb"
+                  alt="3D Chest Model"
+                  camera-controls
+                  auto-rotate>
+    </model-viewer>
+
+    <!-- Overlay Canvas -->
+    <canvas id="overlayCanvas" width="512" height="512"></canvas>
+  </div>
+
+  <!-- Upload Transparent PNG -->
+  <input type="file" id="uploadOverlay" accept="image/png">
+
+  <div id="buttons">
+    <button id="removeOverlay">Remove Overlay</button>
+    <button id="restoreOverlay">Restore Overlay</button>
+    <button onclick="window.history.back()">Back</button>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
+
