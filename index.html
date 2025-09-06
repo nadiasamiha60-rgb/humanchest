@@ -3,32 +3,113 @@
 <head>
   <meta charset="UTF-8">
   <title>RafiRunLung AR Web App</title>
-  <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
 
+  <!-- Model Viewer -->
+  <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: Arial, sans-serif;
+      background: #fff;
+      color: #000;
+    }
+
+    h1 {
+      margin: 10px 0;
+      text-align: center;
+    }
+
+    #viewer-container {
+      position: relative;
+      width: 512px;
+      height: 512px;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    model-viewer {
+      width: 100%;
+      height: 100%;
+      background: transparent;
+    }
+
+    #overlayCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    #buttons {
+      margin-top: 10px;
+    }
+
+    button {
+      margin: 0 5px;
+      padding: 6px 12px;
+      cursor: pointer;
+      border-radius: 5px;
+      border: none;
+      background: #007bff;
+      color: white;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    input[type="file"] {
+      margin-top: 10px;
+    }
+
+    /* Make AR button always visible on mobile */
+    model-viewer::part(ar-button) {
+      bottom: 15px !important;
+      right: 15px !important;
+      background-color: #28a745 !important;
+      color: white !important;
+      font-weight: bold;
+      border-radius: 8px;
+      padding: 6px 12px;
+    }
+  </style>
+</head>
+
+<body>
   <h1>RafiRunLung AR Web App</h1>
   <p>Use your mobile device for full AR experience</p>
 
   <div id="viewer-container">
+    <!-- 3D Chest Model with AR -->
     <model-viewer
-        id="chestModel"
-        src="assets/models/chest.glb"
-        alt="3D Chest Model"
-        ar
-        ar-modes="webxr scene-viewer quick-look"
-        camera-controls
-        auto-rotate
-        environment-image="neutral"
-        exposure="1"
-        shadow-intensity="1"
-        style="width:100%; height:100%;">
+      id="chestModel"
+      src="assets/models/chest.glb"
+      alt="3D Chest Model"
+      ar
+      ar-modes="webxr scene-viewer quick-look"
+      camera-controls
+      auto-rotate
+      environment-image="neutral"
+      exposure="1"
+      shadow-intensity="1"
+      style="width: 100%; height: 100%;">
     </model-viewer>
 
+    <!-- Transparent PNG overlay -->
     <canvas id="overlayCanvas" width="512" height="512"></canvas>
   </div>
 
+  <!-- Upload overlay PNG -->
   <input type="file" id="uploadOverlay" accept="image/png">
 
   <div id="buttons">
@@ -37,7 +118,47 @@
     <button onclick="window.history.back()">Back</button>
   </div>
 
-  <script src="script.js"></script>
+  <script>
+    // Overlay PNG functionality
+    const overlayCanvas = document.getElementById('overlayCanvas');
+    const ctx = overlayCanvas.getContext('2d');
+    const uploadInput = document.getElementById('uploadOverlay');
+    let overlayImage = null;
+
+    uploadInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const img = new Image();
+      img.onload = () => {
+        ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+        ctx.drawImage(img, 0, 0, overlayCanvas.width, overlayCanvas.height);
+        overlayImage = img;
+      };
+      img.src = URL.createObjectURL(file);
+    });
+
+    document.getElementById('removeOverlay').addEventListener('click', () => {
+      ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+    });
+
+    document.getElementById('restoreOverlay').addEventListener('click', () => {
+      if (overlayImage) {
+        ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+        ctx.drawImage(overlayImage, 0, 0, overlayCanvas.width, overlayCanvas.height);
+      }
+    });
+
+    // Force AR preview on mobile
+    const modelViewer = document.getElementById('chestModel');
+    if (navigator.userAgent.match(/Android|iPhone|iPad|iPod/i)) {
+      modelViewer.addEventListener('click', () => {
+        if (modelViewer.canActivateAR) {
+          modelViewer.activateAR();
+        }
+      });
+    }
+  </script>
 </body>
 </html>
 
