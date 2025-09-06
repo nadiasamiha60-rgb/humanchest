@@ -2,22 +2,32 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>RafiRunLung 3D Viewer</title>
+  <title>RafiRunLung AR Web App</title>
   <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
   <link rel="stylesheet" href="style.css">
   <style>
     body {
+      margin: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin: 0;
+      font-family: Arial, sans-serif;
       background: #000;
+      color: #fff;
+    }
+
+    h1 {
+      text-align: center;
+      margin: 10px 0;
     }
 
     #viewer-container {
       position: relative;
       width: 512px;
       height: 512px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      overflow: hidden;
     }
 
     model-viewer {
@@ -26,21 +36,14 @@
       background: transparent;
     }
 
-    #overlayCanvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      pointer-events: none; /* so 3D interactions work */
-    }
-
-    video#cameraFeed {
+    canvas#overlayCanvas {
       position: absolute;
       top: 0;
       left: 0;
       width: 512px;
       height: 512px;
-      object-fit: cover;
-      z-index: -1; /* behind everything */
+      z-index: 2;
+      pointer-events: none;
     }
 
     #buttons {
@@ -50,30 +53,40 @@
     button {
       margin: 0 5px;
       padding: 5px 10px;
+      cursor: pointer;
+    }
+
+    input[type="file"] {
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
 
-  <h1>Chest 3D Viewer with Transparent Overlay & Camera Background</h1>
+  <h1>RafiRunLung AR Web App</h1>
+  <p>Use your mobile device for full AR experience.</p>
 
   <div id="viewer-container">
-    <!-- Camera feed -->
-    <video id="cameraFeed" autoplay playsinline muted></video>
-
-    <!-- 3D Chest GLB Model -->
-    <model-viewer id="chestModel"
-                  src="assets/models/chest.glb"
-                  alt="3D Chest Model"
-                  camera-controls
-                  auto-rotate>
+    <!-- 3D Lung Model with AR support -->
+    <model-viewer 
+      id="lungModel"
+      src="assets/models/lung.glb"
+      alt="3D Lung Model"
+      ar
+      ar-modes="webxr scene-viewer quick-look"
+      camera-controls
+      auto-rotate
+      environment-image="neutral"
+      exposure="1"
+      shadow-intensity="1"
+      style="width: 100%; height: 100%;">
     </model-viewer>
 
-    <!-- Overlay Canvas -->
+    <!-- Transparent PNG overlay -->
     <canvas id="overlayCanvas" width="512" height="512"></canvas>
   </div>
 
-  <!-- Upload Transparent PNG -->
+  <!-- Upload overlay PNG -->
   <input type="file" id="uploadOverlay" accept="image/png">
 
   <div id="buttons">
@@ -82,25 +95,35 @@
     <button onclick="window.history.back()">Back</button>
   </div>
 
-  <script src="script.js"></script>
   <script>
-    // --- Camera Setup ---
-    const video = document.getElementById('cameraFeed');
+    // Overlay PNG functionality
+    const overlayCanvas = document.getElementById('overlayCanvas');
+    const ctx = overlayCanvas.getContext('2d');
+    const uploadInput = document.getElementById('uploadOverlay');
+    let overlayImage = null;
 
-    async function startCamera() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment", width: 512, height: 512 },
-          audio: false
-        });
-        video.srcObject = stream;
-      } catch (err) {
-        console.error("Error accessing camera:", err);
-        alert("Camera access denied or not supported!");
+    uploadInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      const img = new Image();
+      img.onload = () => {
+        ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+        ctx.drawImage(img, 0, 0, 512, 512);
+        overlayImage = img;
+      };
+      img.src = URL.createObjectURL(file);
+    });
+
+    document.getElementById('removeOverlay').addEventListener('click', () => {
+      ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+    });
+
+    document.getElementById('restoreOverlay').addEventListener('click', () => {
+      if (overlayImage) {
+        ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+        ctx.drawImage(overlayImage, 0, 0, 512, 512);
       }
-    }
-
-    startCamera();
+    });
   </script>
 
 </body>
