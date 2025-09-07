@@ -31,26 +31,17 @@
       background: #fff;
     }
 
-<div id="viewer-container" style="width:512px; height:512px; border:2px solid #ccc; border-radius:8px; overflow:hidden;">
-  <model-viewer
-    id="chestModel"
-    src="assets/models/chest.glb"        <!-- Android/Web -->
-   
-    alt="3D Chest Model"
-    ar
-    ar-modes="scene-viewer quick-look webxr"
-    camera-controls
-    auto-rotate
-    scale="1 1 1"
-    environment-image="neutral"
-    exposure="1"
-    shadow-intensity="1"
-    shadow-softness="0.8"
-    style="width:100%; height:100%; background:transparent;">
-    
-    <button slot="ar-button">View in AR</button>
-  </model-viewer>
-</div>
+<model-viewer
+  src="assets/models/chest.glb"
+  ios-src="assets/models/chest.usdz"
+  ar
+  ar-modes="scene-viewer quick-look webxr"
+  camera-controls
+  auto-rotate
+  scale="1 1 1"
+  ar-placement="floor">
+</model-viewer>
+
 
 
 
